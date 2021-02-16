@@ -1,0 +1,43 @@
+- name: manage db server ubuntu
+  hosts: db-server-ubuntu
+  become: yes
+  roles:
+    - geerlingguy.mysql
+
+  tasks:
+    - name: create database
+      mysql_db:
+        name: dbpurwadhika
+        state: present      
+
+    - name: upload database file dump to remote dbpurwadhika
+      copy:
+        src: templateweb/db/dbpurwadhika.sql
+        dest: /tmp/dbpurwadhika.sql
+
+    - name: import database to ansible_db
+      mysql_db:
+        name: dbpurwadhika
+        state: import
+        target: /tmp/dbpurwadhika.sql     
+
+- name: manage db server redhat
+  hosts: db-server-redhat
+  become: yes
+  roles:
+    - geerlingguy.apache
+  tasks:  
+    - name: install git
+      yum:
+        name: git
+        state: present
+        
+    - name: delete file index.html
+      command: rm -rf /var/www/html/
+    
+    - name: clone template to remote server
+      git:
+        repo: https://github.com/hisbu/templateweb.git 
+        dest: /var/www/html/
+        clone: yes        
+           
